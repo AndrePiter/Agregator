@@ -192,7 +192,34 @@
     function getProductMedia(query) {
       const q = query.toLowerCase();
 
-      if (q.includes('пылесос') || q.includes('робот') || q.includes('vacuum')) {
+      if (q.includes('наушник') || q.includes('headphone') || q.includes('airpods') || q.includes('buds') || q.includes('гарнитур') || q.includes('earbuds') || q.includes('tws')) {
+        return {
+          icon: '🎧',
+          imgs: [
+            'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=500&auto=format&fit=crop&q=80',
+            'https://images.unsplash.com/photo-1546435770-a3e426bf472b?w=500&auto=format&fit=crop&q=80'
+          ]
+        };
+      }
+      if (q.includes('телефон') || q.includes('смартфон') || q.includes('iphone') || q.includes('samsung') || q.includes('redmi') || q.includes('xiaomi') || q.includes('poco') || q.includes('realme') || q.includes('honor') || q.includes('huawei')) {
+        return {
+          icon: '📱',
+          imgs: [
+            'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=500&auto=format&fit=crop&q=80',
+            'https://images.unsplash.com/photo-1592899677977-9c10ca588bbd?w=500&auto=format&fit=crop&q=80'
+          ]
+        };
+      }
+      if (q.includes('ноут') || q.includes('laptop') || q.includes('макбук') || q.includes('macbook') || q.includes('компьютер') || q.includes('пк') || q.includes('процессор')) {
+        return {
+          icon: '💻',
+          imgs: [
+            'https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=500&auto=format&fit=crop&q=80',
+            'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=500&auto=format&fit=crop&q=80'
+          ]
+        };
+      }
+      if (q.includes('пылесос') || q.includes('робот') || q.includes('vacuum') || q.includes('dyson')) {
         return {
           icon: '🧹',
           imgs: [
@@ -201,7 +228,7 @@
           ]
         };
       }
-      if (q.includes('чайник') || q.includes('кофе') || q.includes('термос')) {
+      if (q.includes('чайник') || q.includes('кофе') || q.includes('кофеварка') || q.includes('термос')) {
         return {
           icon: '🫖',
           imgs: [
@@ -228,34 +255,7 @@
           ]
         };
       }
-      if (q.includes('ноут') || q.includes('laptop') || q.includes('макбук') || q.includes('компьютер')) {
-        return {
-          icon: '💻',
-          imgs: [
-            'https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=500&auto=format&fit=crop&q=80',
-            'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=500&auto=format&fit=crop&q=80'
-          ]
-        };
-      }
-      if (q.includes('телефон') || q.includes('смартфон') || q.includes('iphone') || q.includes('samsung')) {
-        return {
-          icon: '📱',
-          imgs: [
-            'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=500&auto=format&fit=crop&q=80',
-            'https://images.unsplash.com/photo-1592899677977-9c10ca588bbd?w=500&auto=format&fit=crop&q=80'
-          ]
-        };
-      }
-      if (q.includes('наушник') || q.includes('headphone') || q.includes('airpods')) {
-        return {
-          icon: '🎧',
-          imgs: [
-            'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=500&auto=format&fit=crop&q=80',
-            'https://images.unsplash.com/photo-1546435770-a3e426bf472b?w=500&auto=format&fit=crop&q=80'
-          ]
-        };
-      }
-      if (q.includes('кросс') || q.includes('обувь') || q.includes('nike') || q.includes('adidas')) {
+      if (q.includes('кросс') || q.includes('обувь') || q.includes('nike') || q.includes('adidas') || q.includes('puma') || q.includes('кеды') || q.includes('ботинки')) {
         return {
           icon: '👟',
           imgs: [
@@ -273,7 +273,7 @@
           ]
         };
       }
-      if (q.includes('телевизор') || q.includes('tv') || q.includes('монитор')) {
+      if (q.includes('телевизор') || q.includes('tv') || q.includes('монитор') || q.includes('экран')) {
         return {
           icon: '📺',
           imgs: [
@@ -291,7 +291,7 @@
           ]
         };
       }
-      if (q.includes('часы') || q.includes('watch')) {
+      if (q.includes('часы') || q.includes('watch') || q.includes('браслет')) {
         return {
           icon: '⌚',
           imgs: [
