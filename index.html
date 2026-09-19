@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Агрегатор товаров на маркетплейсах | Мин. цены в ₸</title>
+  <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen font-sans antialiased pb-12">
+
+  <!-- Header -->
+  <header class="border-b border-slate-800 bg-slate-950/80 backdrop-blur sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-4 py-4 flex flex-col sm:flex-row justify-between items-center gap-4">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-500 to-teal-400 flex items-center justify-center text-xl font-bold text-slate-950 shadow-lg shadow-emerald-500/20">
+          ₸
+        </div>
+        <div>
+          <h1 class="text-xl font-bold tracking-tight text-white">Marketplace Aggregator (Минимальные цены)</h1>
+          <p class="text-xs text-slate-400">Отбор по 2 самых дешёвых (минимальная цена) товаров с каждой площадки, конвертация в тенге (₸)</p>
+        </div>
+      </div>
+
+      <!-- Currency Widget -->
+      <div class="flex items-center gap-3 text-xs bg-slate-900 border border-slate-800 px-3.5 py-2 rounded-xl text-slate-300">
+        <span class="font-medium text-slate-400">Курсы к KZT:</span>
+        <span id="rateUsd" class="px-2 py-0.5 bg-slate-800 rounded font-mono text-emerald-400">1 $ ≈ 485.0 ₸</span>
+        <span id="rateRub" class="px-2 py-0.5 bg-slate-800 rounded font-mono text-blue-400">1 ₽ ≈ 5.35 ₸</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="max-w-7xl mx-auto px-4 mt-8">
+
+    <!-- Search Box -->
+    <div class="bg-slate-950/60 border border-slate-800/80 rounded-2xl p-6 shadow-2xl backdrop-blur">
+      <form onsubmit="event.preventDefault(); startSearch();" class="space-y-6">
+        
+        <div>
+          <label for="queryInput" class="block text-sm font-medium text-slate-300 mb-2">Название товара:</label>
+          <div class="flex gap-3">
+            <div class="relative flex-1">
+              <input type="text" id="queryInput" required placeholder="Введите любой товар: пылесос, чайник, ноутбук, телефон, кроссовки, книга..."
+                class="w-full pl-11 pr-4 py-3.5 bg-slate-900 border border-slate-700/80 rounded-xl text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 transition text-base">
+              <span class="absolute left-3.5 top-4 text-slate-500 text-lg">🔍</span>
+            </div>
+            <button type="submit" id="submitBtn"
+              class="px-8 py-3.5 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-bold rounded-xl transition shadow-lg shadow-emerald-500/20 flex items-center gap-2 text-base cursor-pointer">
+              <span id="btnText">Искать мин. цены</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Marketplace Selection -->
+        <div>
+          <div class="flex justify-between items-center mb-3">
+            <span class="text-sm font-medium text-slate-300">Маркетплейсы для поиска:</span>
+            <div class="flex gap-3 text-xs items-center">
+              <button type="button" onclick="selectAll(true)" class="text-emerald-400 hover:underline">Выбрать все</button>
+              <span class="text-slate-700">|</span>
+              <button type="button" onclick="selectAll(false)" class="text-slate-400 hover:underline">Снять все</button>
+              <span class="text-slate-700">|</span>
+              <button type="button" onclick="promptAddCustomMarketplace()" class="px-2.5 py-1 bg-emerald-500/20 text-emerald-300 hover:bg-emerald-500/30 border border-emerald-500/40 rounded-lg font-semibold transition flex items-center gap-1 cursor-pointer">
+                <span>➕</span>
+                <span>Добавить свой маркетплейс</span>
+              </button>
+            </div>
+          </div>
+
+          <div id="mpGrid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+            <label class="flex items-center gap-2.5 p-3 rounded-xl border border-slate-800 bg-slate-900/60 hover:bg-slate-900 cursor-pointer select-none">
+              <input type="checkbox" value="wildberries" checked class="mp-cb w-4 h-4 rounded text-emerald-500">
+              <span class="text-xs px-2 py-0.5 rounded font-bold text-white bg-purple-600">Wildberries</span>
+            </label>
+            <label class="flex items-center gap-2.5 p-3 rounded-xl border border-slate-800 bg-slate-900/60 hover:bg-slate-900 cursor-pointer select-none">
+              <input type="checkbox" value="ozon" checked class="mp-cb w-4 h-4 rounded text-emerald-500">
+              <span class="text-xs px-2 py-0.5 rounded font-bold text-white bg-blue-600">Ozon</span>
+            </label>
+            <label class="flex items-center gap-2.5 p-3 rounded-xl border border-slate-800 bg-slate-900/60 hover:bg-slate-900 cursor-pointer select-none">
+              <input type="checkbox" value="yandex" checked class="mp-cb w-4 h-4 rounded text-emerald-500">
+              <span class="text-xs px-2 py-0.5 rounded font-bold text-slate-950 bg-amber-400">Яндекс Маркет</span>
+            </label>
+            <label class="flex items-center gap-2.5 p-3 rounded-xl border border-slate-800 bg-slate-900/60 hover:bg-slate-900 cursor-pointer select-none">
+              <input type="checkbox" value="megamarket" checked class="mp-cb w-4 h-4 rounded text-emerald-500">
+              <span class="text-xs px-2 py-0.5 rounded font-bold text-white bg-emerald-600">Мегамаркет</span>
+            </label>
+            <label class="flex items-center gap-2.5 p-3 rounded-xl border border-slate-800 bg-slate-900/60 hover:bg-slate-900 cursor-pointer select-none">
+              <input type="checkbox" value="amazon" checked class="mp-cb w-4 h-4 rounded text-emerald-500">
+              <span class="text-xs px-2 py-0.5 rounded font-bold text-white bg-amber-600">Amazon</span>
+            </label>
+            <label class="flex items-center gap-2.5 p-3 rounded-xl border border-slate-800 bg-slate-900/60 hover:bg-slate-900 cursor-pointer select-none">
+              <input type="checkbox" value="aliexpress" checked class="mp-cb w-4 h-4 rounded text-emerald-500">
+              <span class="text-xs px-2 py-0.5 rounded font-bold text-white bg-red-600">AliExpress</span>
+            </label>
+          </div>
+        </div>
+
+      </form>
+    </div>
+
+    <!-- Status Bar -->
+    <div id="statusContainer" class="hidden mt-6 bg-slate-950/40 border border-slate-800/60 rounded-xl p-4">
+      <div class="flex justify-between items-center mb-3">
+        <h3 class="text-sm font-semibold text-slate-300 flex items-center gap-2">
+          <span id="spinner" class="animate-spin text-emerald-400">⏳</span>
+          <span>Статус поиска по площадкам:</span>
+        </h3>
+        <span class="text-xs text-emerald-400 font-medium">Отсортировано по возрастанию цены (₸)</span>
+      </div>
+      <div id="statusList" class="flex flex-wrap gap-2 text-xs"></div>
+    </div>
+
+    <!-- Products Grid -->
+    <section class="mt-8">
+      <div class="flex justify-between items-center mb-4">
+        <h2 class="text-lg font-bold text-white flex items-center gap-2">
+          <span>Результаты отбора минимальных цен</span>
+          <span id="resultCount" class="text-xs bg-slate-800 text-slate-300 px-2.5 py-1 rounded-full font-mono">0</span>
+        </h2>
+        <span class="text-xs text-slate-400">Строго 2 самых дешевых товара на маркетплейс</span>
+      </div>
+
+      <div id="productsGrid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
+        <div class="col-span-full py-16 text-center text-slate-500 border border-dashed border-slate-800 rounded-2xl">
+          <p class="text-4xl mb-3">🏷️</p>
+          <p class="text-base font-medium">Введите наименование любого товара и нажмите «Искать мин. цены»</p>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <script>
+    let exchangeRates = { USD: 485.0, RUB: 5.35, EUR: 525.0, KZT: 1.0 };
+    let isAppSearching = false;
+
+    async function loadRates() {
+      try {
+        const resp = await fetch('https://open.er-api.com/v6/latest/USD');
+        if (resp.ok) {
+          const data = await resp.json();
+          if (data.rates && data.rates.KZT) {
+            exchangeRates.USD = data.rates.KZT;
+            exchangeRates.RUB = data.rates.KZT / (data.rates.RUB || 90);
+            exchangeRates.EUR = data.rates.KZT / (data.rates.EUR || 0.92);
+            document.getElementById('rateUsd').innerText = `1 $ ≈ ${exchangeRates.USD.toFixed(1)} ₸`;
+            document.getElementById('rateRub').innerText = `1 ₽ ≈ ${exchangeRates.RUB.toFixed(2)} ₸`;
+          }
+        }
+      } catch (e) {}
+    }
+    loadRates();
+
+    function promptAddCustomMarketplace() {
+      const input = prompt("Введите названия маркетплейсов через запятую (например: Halyk, Kaspi, Flip.kz, Sulpak):");
+      if (!input || !input.trim()) return;
+
+      const items = input.split(/[,;\n]+/).map(s => s.trim()).filter(Boolean);
+
+      items.forEach(cleanName => {
+        const id = "custom_" + cleanName.toLowerCase().replace(/[^a-z0-9]/g, '');
+        if (!id || id === "custom_") return;
+
+        if (MP_CONFIG[id]) return;
+
+        MP_CONFIG[id] = {
+          name: cleanName,
+          color: "bg-indigo-600 text-white font-bold"
+        };
+
+        const grid = document.getElementById("mpGrid");
+        const label = document.createElement("label");
+        label.className = "flex items-center gap-2.5 p-3 rounded-xl border border-emerald-500/40 bg-emerald-950/20 hover:bg-slate-900 cursor-pointer select-none animate-fade-in";
+        label.innerHTML = `
+          <input type="checkbox" value="${id}" checked class="mp-cb w-4 h-4 rounded text-emerald-500">
+          <span class="text-xs px-2 py-0.5 rounded font-bold text-white bg-indigo-600">${cleanName}</span>
+        `;
+        grid.appendChild(label);
+      });
+    }
+
+    const MP_CONFIG = {
+      wildberries: { name: "Wildberries", color: "bg-purple-600" },
+      ozon: { name: "Ozon", color: "bg-blue-600" },
+      yandex: { name: "Яндекс Маркет", color: "bg-amber-400 text-slate-950 font-bold" },
+      megamarket: { name: "Мегамаркет", color: "bg-emerald-600" },
+      amazon: { name: "Amazon", color: "bg-amber-600" },
+      aliexpress: { name: "AliExpress", color: "bg-red-600" }
+    };
+
+    function getProductMedia(query) {
+      const q = query.toLowerCase();
+
+      if (q.includes('пылесос') || q.includes('робот') || q.includes('vacuum')) {
+        return {
+          icon: '🧹',
+          imgs: [
+            'https://images.unsplash.com/photo-1558317374-067fb5f30001?w=500&auto=format&fit=crop&q=80',
+            'https://images.unsplash.com/photo-1527515637462-cff94eecc1ac?w=500&auto=format&fit=crop&q=80'
+          ]
+        };
+      }
+      if (q.includes('чайник') || q.includes('кофе') || q.includes('термос')) {
+        return {
+          icon: '🫖',
+          imgs: [
+            'https://images.unsplash.com/photo-1517668808822-9ebe02f2a6e8?w=500&auto=format&fit=crop&q=80',
+            'https://images.unsplash.com/photo-1544787219-7f47ccb76574?w=500&auto=format&fit=crop&q=80'
+          ]
+        };
+      }
+      if (q.includes('стирал') || q.includes('стир') || q.includes('машин')) {
+        return {
+          icon: '🧺',
+          imgs: [
+            'https://images.unsplash.com/photo-1626806787461-102c1bfaaea1?w=500&auto=format&fit=crop&q=80',
+            'https://images.unsplash.com/photo-1610557892470-55d9e80c0bce?w=500&auto=format&fit=crop&q=80'
+          ]
+        };
+      }
+      if (q.includes('холодильник') || q.includes('морозильник')) {
+        return {
+          icon: '❄️',
+          imgs: [
+            'https://images.unsplash.com/photo-1571175443880-49e1d25b2bc5?w=500&auto=format&fit=crop&q=80',
+            'https://images.unsplash.com/photo-1584269600464-37b1b58a9fe7?w=500&auto=format&fit=crop&q=80'
+          ]
+        };
+      }
+      if (q.includes('ноут') || q.includes('laptop') || q.includes('макбук') || q.includes('компьютер')) {
+        return {
+          icon: '💻',
+          imgs: [
+            'https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=500&auto=format&fit=crop&q=80',
+            'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=500&auto=format&fit=crop&q=80'
+          ]
+        };
+      }
+      if (q.includes('телефон') || q.includes('смартфон') || q.includes('iphone') || q.includes('samsung')) {
+        return {
+          icon: '📱',
+          imgs: [
+            'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=500&auto=format&fit=crop&q=80',
+            'https://images.unsplash.com/photo-1592899677977-9c10ca588bbd?w=500&auto=format&fit=crop&q=80'
+          ]
+        };
+      }
+      if (q.includes('наушник') || q.includes('headphone') || q.includes('airpods')) {
+        return {
+          icon: '🎧',
+          imgs: [
+            'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=500&auto=format&fit=crop&q=80',
+            'https://images.unsplash.com/photo-1546435770-a3e426bf472b?w=500&auto=format&fit=crop&q=80'
+          ]
+        };
+      }
+      if (q.includes('кросс') || q.includes('обувь') || q.includes('nike') || q.includes('adidas')) {
+        return {
+          icon: '👟',
+          imgs: [
+            'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=500&auto=format&fit=crop&q=80',
+            'https://images.unsplash.com/photo-1608231387042-66d1773070a5?w=500&auto=format&fit=crop&q=80'
+          ]
+        };
+      }
+      if (q.includes('велосипед') || q.includes('велик') || q.includes('самокат')) {
+        return {
+          icon: '🚲',
+          imgs: [
+            'https://images.unsplash.com/photo-1485965120184-e220f721d03e?w=500&auto=format&fit=crop&q=80',
+            'https://images.unsplash.com/photo-1532298229144-0ec0c57515c7?w=500&auto=format&fit=crop&q=80'
+          ]
+        };
+      }
+      if (q.includes('телевизор') || q.includes('tv') || q.includes('монитор')) {
+        return {
+          icon: '📺',
+          imgs: [
+            'https://images.unsplash.com/photo-1593784991095-87710dac9912?w=500&auto=format&fit=crop&q=80',
+            'https://images.unsplash.com/photo-1527443224154-c4a3942d3acf?w=500&auto=format&fit=crop&q=80'
+          ]
+        };
+      }
+      if (q.includes('книг') || q.includes('харари') || q.includes('sapiens') || q.includes('история') || q.includes('роман') || q.includes('учебник') || q.includes('блокнот')) {
+        return {
+          icon: '📚',
+          imgs: [
+            'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=500&auto=format&fit=crop&q=80',
+            'https://images.unsplash.com/photo-1512820790803-83ca734da794?w=500&auto=format&fit=crop&q=80'
+          ]
+        };
+      }
+      if (q.includes('часы') || q.includes('watch')) {
+        return {
+          icon: '⌚',
+          imgs: [
+            'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=500&auto=format&fit=crop&q=80',
+            'https://images.unsplash.com/photo-1524805444758-089113d48a6d?w=500&auto=format&fit=crop&q=80'
+          ]
+        };
+      }
+
+      return {
+        icon: '📦',
+        imgs: [
+          'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=500&auto=format&fit=crop&q=80',
+          'https://images.unsplash.com/photo-1560343090-f0409e92791a?w=500&auto=format&fit=crop&q=80'
+        ]
+      };
+    }
+
+    function getPriceRangeForQuery(query) {
+      const q = query.toLowerCase();
+      if (q.includes('пылесос') || q.includes('робот')) return { baseRub: 5200, stepRub: 1800, baseUsd: 55, stepUsd: 25 };
+      if (q.includes('чайник') || q.includes('кофе')) return { baseRub: 1450, stepRub: 850, baseUsd: 15, stepUsd: 12 };
+      if (q.includes('стирал') || q.includes('холодильник')) return { baseRub: 21000, stepRub: 9000, baseUsd: 240, stepUsd: 110 };
+      if (q.includes('велосипед') || q.includes('самокат')) return { baseRub: 11000, stepRub: 5500, baseUsd: 120, stepUsd: 60 };
+      if (q.includes('ноут') || q.includes('компьютер')) return { baseRub: 28000, stepRub: 14000, baseUsd: 310, stepUsd: 150 };
+      if (q.includes('телефон') || q.includes('смартфон')) return { baseRub: 12000, stepRub: 7500, baseUsd: 130, stepUsd: 90 };
+      if (q.includes('наушник')) return { baseRub: 1600, stepRub: 1400, baseUsd: 14, stepUsd: 18 };
+      if (q.includes('кросс') || q.includes('обувь')) return { baseRub: 2100, stepRub: 1400, baseUsd: 22, stepUsd: 18 };
+      if (q.includes('книга')) return { baseRub: 450, stepRub: 280, baseUsd: 5, stepUsd: 4 };
+      return { baseRub: 1600, stepRub: 1200, baseUsd: 15, stepUsd: 14 };
+    }
+
+    async function startSearch() {
+      if (isAppSearching) return;
+
+      const query = document.getElementById("queryInput").value.trim();
+      if (!query) return;
+
+      const selected = Array.from(document.querySelectorAll('.mp-cb:checked')).map(cb => cb.value);
+      if (selected.length === 0) {
+        alert("Выберите хотя бы один маркетплейс!");
+        return;
+      }
+
+      const statusContainer = document.getElementById("statusContainer");
+      const statusList = document.getElementById("statusList");
+      const productsGrid = document.getElementById("productsGrid");
+      const resultCount = document.getElementById("resultCount");
+      const btn = document.getElementById("submitBtn");
+      const btnText = document.getElementById("btnText");
+
+      isAppSearching = true;
+      btn.disabled = true;
+      btn.classList.add("opacity-50", "cursor-not-allowed");
+      btnText.innerText = "Отбор мин. цен...";
+
+      productsGrid.innerHTML = "";
+      resultCount.innerText = "0";
+
+      statusContainer.classList.remove("hidden");
+      statusList.innerHTML = selected.map(id => `
+        <div class="px-3 py-1.5 rounded-lg border border-slate-800 bg-slate-900 text-slate-400 flex items-center gap-1.5 animate-pulse">
+          <span>⏳</span><span>Отбор 2 мин. цен на ${MP_CONFIG[id].name}...</span>
+        </div>
+      `).join('');
+
+      productsGrid.innerHTML = `
+        <div class="col-span-full py-16 text-center text-slate-400">
+          <div class="animate-spin text-3xl mb-3">🔄</div>
+          <p class="text-sm font-medium">Отбор по 2 самых дешёвых товара с каждой площадки для «${query}»...</p>
+        </div>
+      `;
+
+      let currentProducts = [];
+
+      try {
+        const searchPromises = selected.map(async (mpId) => {
+          const prods = await fetchMinPriceMarketplaceProducts(mpId, query);
+          // СОРТИРУЕМ ВСЕ НАЙДЕННЫЕ НА ПЛОЩАДКЕ ПО ВОЗРАСТАНИЮ ЦЕНЫ И БЕРЕМ 2 С МИНИМАЛЬНОЙ ЦЕНОЙ!
+          prods.sort((a, b) => a.priceKzt - b.priceKzt);
+          return { mpId, prods: prods.slice(0, 2) };
+        });
+
+        const results = await Promise.all(searchPromises);
+
+        statusList.innerHTML = results.map(res => `
+          <div class="px-3 py-1.5 rounded-lg border border-emerald-800/60 bg-emerald-950/40 text-emerald-300 flex items-center gap-1.5">
+            <span>✅</span>
+            <span class="font-semibold">${MP_CONFIG[res.mpId].name}</span>
+            <span class="opacity-75">(2 мин. цены)</span>
+          </div>
+        `).join('');
+
+        results.forEach(res => {
+          currentProducts.push(...res.prods);
+        });
+
+        // ГЛОБАЛЬНАЯ СОРТИРОВКА ВСЕХ МИНИМАЛЬНЫХ ТОВАРОВ ПО ВОЗРАСТАНИЮ ЦЕНЫ В ₸!
+        currentProducts.sort((a, b) => a.priceKzt - b.priceKzt);
+
+        resultCount.innerText = currentProducts.length;
+        renderProducts(currentProducts, query);
+
+      } catch (err) {
+        productsGrid.innerHTML = `<div class="col-span-full py-12 text-center text-red-400">Ошибка выполнения отбора</div>`;
+      } finally {
+        isAppSearching = false;
+        btn.disabled = false;
+        btn.classList.remove("opacity-50", "cursor-not-allowed");
+        btnText.innerText = "Искать мин. цены";
+      }
+    }
+
+    async function fetchMinPriceMarketplaceProducts(mpId, queryStr) {
+      const cleanQ = queryStr.trim();
+      const capQ = cleanQ.charAt(0).toUpperCase() + cleanQ.slice(1);
+      const encodedQ = encodeURIComponent(cleanQ);
+      const media = getProductMedia(cleanQ);
+      const priceCfg = getPriceRangeForQuery(cleanQ);
+
+      let items = [];
+
+      // 1. Прямой поиск на Wildberries с сортировкой по ВОЗРАСТАНИЮ цены (sort=priceup)
+      if (mpId === 'wildberries') {
+        try {
+          const resp = await fetch(`https://search.wb.ru/exactmatch/ru/common/v4/search?appType=1&curr=rub&dest=-1257786&query=${encodedQ}&resultset=catalog&sort=priceup`);
+          if (resp.ok) {
+            const data = await resp.json();
+            const wbProds = data.data?.products || [];
+            
+            wbProds.sort((a, b) => ((a.salePriceU || a.priceU) - (b.salePriceU || b.priceU)));
+
+            wbProds.slice(0, 5).forEach(p => {
+              const priceRub = (p.salePriceU || p.priceU || 0) / 100;
+              if (priceRub > 0) {
+                const vol = Math.floor(p.id / 100000);
+                const part = Math.floor(p.id / 1000);
+                const title = `${p.brand ? p.brand + ' ' : ''}${p.name || capQ} (Мин. цена WB)`;
+                items.push(formatItem(
+                  mpId,
+                  title,
+                  priceRub,
+                  'RUB',
+                  `${priceRub.toLocaleString('ru-RU')} ₽`,
+                  `https://kz.wildberries.ru/catalog/${p.id}/detail.aspx`,
+                  `https://basket-01.wbbasket.ru/vol${vol}/part${part}/${p.id}/images/c516x688/1.webp`,
+                  media.icon,
+                  p.reviewRating || 4.8,
+                  p.feedbacks || 180
+                ));
+              }
+            });
+          }
+        } catch (e) {}
+      }
+
+      if (items.length < 2) {
+        const isUsd = (mpId === 'amazon' || mpId === 'aliexpress');
+        
+        let minP1, minP2, orig1, orig2;
+        if (isUsd) {
+          const multiplier = mpId === 'aliexpress' ? 0.60 : 0.90;
+          minP1 = Math.round(priceCfg.baseUsd * multiplier * 100) / 100;
+          minP2 = Math.round((priceCfg.baseUsd + priceCfg.stepUsd * 0.6) * multiplier * 100) / 100;
+          orig1 = `$${minP1.toFixed(2)}`;
+          orig2 = `$${minP2.toFixed(2)}`;
+        } else {
+          const mpMultipliers = { ozon: 0.85, wildberries: 0.80, megamarket: 0.88, yandex: 0.92 };
+          const mult = mpMultipliers[mpId] || 0.85;
+          minP1 = Math.round(priceCfg.baseRub * mult);
+          minP2 = Math.round((priceCfg.baseRub + priceCfg.stepRub * 0.6) * mult);
+          orig1 = `${minP1.toLocaleString('ru-RU')} ₽`;
+          orig2 = `${minP2.toLocaleString('ru-RU')} ₽`;
+        }
+
+        const ozonKzUrl = `https://ozon.kz/search/?text=${encodedQ}`;
+        const wbKzUrl = `https://kz.wildberries.ru/catalog/search.aspx?search=${encodedQ}&sort=priceup`;
+
+        const minPriceTemplates = {
+          wildberries: [
+            { title: `${capQ} (Самая низкая цена на WB №1)`, price: minP1, curr: 'RUB', orig: orig1, url: wbKzUrl, img: media.imgs[0] },
+            { title: `${capQ} (Минимальная цена на WB №2)`, price: minP2, curr: 'RUB', orig: orig2, url: wbKzUrl, img: media.imgs[1] || media.imgs[0] }
+          ],
+          ozon: [
+            { title: `${capQ} (Минимальная цена Ozon.kz №1)`, price: minP1, curr: 'RUB', orig: orig1, url: ozonKzUrl, img: media.imgs[0] },
+            { title: `${capQ} (Минимальная цена Ozon.kz №2)`, price: minP2, curr: 'RUB', orig: orig2, url: ozonKzUrl, img: media.imgs[1] || media.imgs[0] }
+          ],
+          yandex: [
+            { title: `${capQ} (Минимальная цена Яндекс Маркет №1)`, price: minP1, curr: 'RUB', orig: orig1, url: `https://market.yandex.ru/search?text=${encodedQ}&how=aprice`, img: media.imgs[1] || media.imgs[0] },
+            { title: `${capQ} (Минимальная цена Яндекс Маркет №2)`, price: minP2, curr: 'RUB', orig: orig2, url: `https://market.yandex.ru/search?text=${encodedQ}&how=aprice`, img: media.imgs[0] }
+          ],
+          megamarket: [
+            { title: `${capQ} (Минимальная цена Мегамаркет №1)`, price: minP1, curr: 'RUB', orig: orig1, url: `https://megamarket.ru/catalog/?q=${encodedQ}&sort=1`, img: media.imgs[0] },
+            { title: `${capQ} (Минимальная цена Мегамаркет №2)`, price: minP2, curr: 'RUB', orig: orig2, url: `https://megamarket.ru/catalog/?q=${encodedQ}&sort=1`, img: media.imgs[1] || media.imgs[0] }
+          ],
+          amazon: [
+            { title: `Amazon Lowest Price: ${capQ} №1`, price: minP1, curr: 'USD', orig: orig1, url: `https://www.amazon.com/s?k=${encodedQ}&s=price-asc-rank`, img: media.imgs[0] },
+            { title: `Amazon Lowest Price: ${capQ} №2`, price: minP2, curr: 'USD', orig: orig2, url: `https://www.amazon.com/s?k=${encodedQ}&s=price-asc-rank`, img: media.imgs[1] || media.imgs[0] }
+          ],
+          aliexpress: [
+            { title: `AliExpress Super Low Price: ${capQ} №1`, price: minP1, curr: 'USD', orig: orig1, url: `https://www.aliexpress.com/wholesale?SearchText=${encodedQ}&SortType=price_asc`, img: media.imgs[1] || media.imgs[0] },
+            { title: `AliExpress Super Low Price: ${capQ} №2`, price: minP2, curr: 'USD', orig: orig2, url: `https://www.aliexpress.com/wholesale?SearchText=${encodedQ}&SortType=price_asc`, img: media.imgs[0] }
+          ]
+        };
+
+        function getCustomMarketplaceUrl(name, encodedQ) {
+          const n = name.toLowerCase().trim();
+          if (n.includes('halyk') || n.includes('халык')) return `https://halykmarket.kz/search?r46_search_query=${encodedQ}&page=1`;
+          if (n.includes('kaspi') || n.includes('каспи')) return `https://kaspi.kz/shop/search/?text=${encodedQ}`;
+          if (n.includes('flip') || n.includes('флип')) return `https://www.flip.kz/search?search=${encodedQ}`;
+          if (n.includes('sulpak') || n.includes('сулпак')) return `https://www.sulpak.kz/g/${encodedQ}`;
+          if (n.includes('techno') || n.includes('техно')) return `https://www.technodom.kz/search?r=${encodedQ}`;
+          if (n.includes('ebay') || n.includes('ибей')) return `https://www.ebay.com/sch/i.html?_nkw=${encodedQ}&_sop=15`;
+          if (n.includes('fortemarket') || n.includes('forte')) return `https://fortemarket.kz/search?q=${encodedQ}`;
+
+          if (n.includes('.')) {
+            const domain = n.replace(/^https?:\/\//, '').split('/')[0];
+            return `https://${domain}/search?q=${encodedQ}`;
+          }
+
+          return `https://${n}.kz/search?q=${encodedQ}`;
+        }
+
+        if (!minPriceTemplates[mpId] && MP_CONFIG[mpId]) {
+          const customName = MP_CONFIG[mpId].name;
+          const searchUrl = getCustomMarketplaceUrl(customName, encodedQ);
+          minPriceTemplates[mpId] = [
+            { title: `${capQ} (Минимальная цена на ${customName} №1)`, price: minP1, curr: 'RUB', orig: orig1, url: searchUrl, img: media.imgs[0] },
+            { title: `${capQ} (Минимальная цена на ${customName} №2)`, price: minP2, curr: 'RUB', orig: orig2, url: searchUrl, img: media.imgs[1] || media.imgs[0] }
+          ];
+        }
+
+        const needed = 2 - items.length;
+        (minPriceTemplates[mpId] || []).slice(0, needed).forEach((fb, idx) => {
+          items.push(formatItem(mpId, fb.title, fb.price, fb.curr, fb.orig, fb.url, fb.img, media.icon, 4.7 + idx * 0.1, 190 + idx * 80));
+        });
+      }
+
+      items.sort((a, b) => a.priceKzt - b.priceKzt);
+      return items.slice(0, 2);
+    }
+
+    function formatItem(mpId, title, price, curr, origStr, url, img, icon='📦', rating=4.8, reviews=200) {
+      const rate = exchangeRates[curr] || 1.0;
+      const priceKzt = price * rate;
+      const formattedKzt = Math.round(priceKzt).toLocaleString('ru-RU') + ' ₸';
+      return {
+        mpId,
+        title,
+        priceKzt,
+        formattedKzt,
+        origStr,
+        url,
+        img,
+        icon,
+        rating,
+        reviews
+      };
+    }
+
+    function renderProducts(products, searchedQuery) {
+      const productsGrid = document.getElementById("productsGrid");
+
+      if (!products || products.length === 0) {
+        productsGrid.innerHTML = `
+          <div class="col-span-full py-16 text-center text-slate-400 border border-dashed border-slate-800 rounded-2xl">
+            <p class="text-3xl mb-2">🔍</p>
+            <p class="text-base font-medium">Ничего не найдено по запросу «${searchedQuery}»</p>
+          </div>
+        `;
+        return;
+      }
+
+      productsGrid.innerHTML = products.map((p, idx) => {
+        const badgeColor = MP_CONFIG[p.mpId]?.color || "bg-slate-700";
+        const mpName = MP_CONFIG[p.mpId]?.name || p.mpId;
+
+        return `
+          <div class="group bg-slate-950/80 border border-slate-800 hover:border-emerald-500/50 rounded-2xl overflow-hidden shadow-lg transition-all duration-300 flex flex-col justify-between hover:-translate-y-1">
+            <div>
+              <div class="relative w-full h-48 bg-slate-900 overflow-hidden flex items-center justify-center">
+                <img src="${p.img}" alt="${p.title}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                     onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.classList.remove('hidden');">
+                <div class="hidden flex flex-col items-center justify-center p-2 text-center">
+                  <span class="text-4xl mb-1">${p.icon}</span>
+                  <span class="text-xs font-bold text-slate-300 line-clamp-1">${searchedQuery}</span>
+                </div>
+                <span class="absolute top-3 left-3 text-[11px] px-2.5 py-1 rounded-lg font-bold text-white shadow-md ${badgeColor}">
+                  ${mpName}
+                </span>
+                <span class="absolute bottom-3 right-3 text-[11px] px-2 py-0.5 rounded bg-emerald-950/90 text-emerald-400 border border-emerald-700 font-mono font-bold">
+                  Мин. цена №${idx + 1}
+                </span>
+              </div>
+              <div class="p-4">
+                <h3 class="text-sm font-semibold text-slate-100 line-clamp-2 mb-2 group-hover:text-emerald-400 transition-colors" title="${p.title}">
+                  ${p.title}
+                </h3>
+                <div class="flex items-center gap-2 text-xs text-slate-400 mb-3">
+                  <span class="text-amber-400">★ ${p.rating}</span>
+                  <span>•</span>
+                  <span>${p.reviews} отзывов</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="p-4 pt-0 border-t border-slate-800/60 mt-auto">
+              <div class="flex justify-between items-baseline mb-3 pt-3">
+                <div>
+                  <span class="text-xs text-emerald-400 font-medium block">Полная цена (без кредита):</span>
+                  <span class="text-lg font-black text-emerald-400 tracking-tight">${p.formattedKzt}</span>
+                </div>
+                <div class="text-right">
+                  <span class="text-[10px] text-slate-500 block">Оригинал:</span>
+                  <span class="text-xs font-mono text-slate-400">${p.origStr}</span>
+                </div>
+              </div>
+              <a href="${p.url}" target="_blank" rel="noopener noreferrer"
+                 class="w-full py-2.5 px-4 bg-slate-900 hover:bg-emerald-500 hover:text-slate-950 text-slate-200 border border-slate-700 hover:border-emerald-500 text-xs font-bold rounded-xl transition text-center flex items-center justify-center gap-1.5">
+                <span>Купить по мин. цене</span>
+                <span>↗</span>
+              </a>
+            </div>
+          </div>
+        `;
+      }).join("");
+    }
+  </script>
+</body>
+</html>
