@@ -301,11 +301,21 @@
         };
       }
 
+      if (q.includes('клавиатур') || q.includes('клава') || q.includes('keyboard') || q.includes('мышь') || q.includes('мышка') || q.includes('mouse') || q.includes('коврик') || q.includes('геймпад')) {
+        return {
+          icon: '⌨️',
+          imgs: [
+            'https://images.unsplash.com/photo-1587829741301-dc798b83add3?w=500&auto=format&fit=crop&q=80',
+            'https://images.unsplash.com/photo-1618384887929-16ec33fab9ef?w=500&auto=format&fit=crop&q=80'
+          ]
+        };
+      }
+
       return {
         icon: '📦',
         imgs: [
-          'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=500&auto=format&fit=crop&q=80',
-          'https://images.unsplash.com/photo-1560343090-f0409e92791a?w=500&auto=format&fit=crop&q=80'
+          'https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?w=500&auto=format&fit=crop&q=80',
+          'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=500&auto=format&fit=crop&q=80'
         ]
       };
     }
